@@ -1,0 +1,8 @@
+
+    # dotnet ef migrations add [name]
+        - สร้าง Migrations
+        - ทำการแปรง Model Class ไปเป็น Table ใน Database
+        - ตัวอย่าง dotnet ef migrations add InitialCreate -o Data/Migrations
+    
+    # dotnet ef database update
+        - นำ Migrations ล่าสุดไป update ฐานข้อมูล
