@@ -5,9 +5,7 @@ using server.Entities;
 
 namespace server.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
-public class UserController : ControllerBase
+public class UserController : BaseAPIController
 {
     private readonly DataContext _context;
 
