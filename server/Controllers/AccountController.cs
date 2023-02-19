@@ -23,7 +23,7 @@ namespace server.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<AppUser>> Register(RegisterDTO registerDTO)
+        public async Task<ActionResult<AppUser>> Register([FromBody] RegisterDTO registerDTO)
         {
             if (await UserExists(registerDTO.Username)) return BadRequest("Username is taken");
 
@@ -33,12 +33,29 @@ namespace server.Controllers
             var user = new AppUser()
             {
                 UserName = registerDTO.Username,
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Username)),
+                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password)),
                 PasswordSalt = hmac.Key
             };
 
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
+
+            return Ok(user);
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult<AppUser>> Login(LoginDTO loginDto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == loginDto.Username);
+
+            if (user == null) return Unauthorized("Invalid username");
+
+            using var hmac = new HMACSHA512(user.PasswordSalt);
+            var computingHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
+            for (int index = 0; index < computingHash.Length; index++)
+            {
+                if (computingHash[index] != user.PasswordHash[index]) return Unauthorized("Invalid password");
+            }
 
             return Ok(user);
         }
