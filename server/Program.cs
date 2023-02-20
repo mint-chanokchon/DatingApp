@@ -1,9 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using server.Data;
+using server.Interfaces;
+using server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+/*
+    AddTransient    -> ถูกสร้างขึ้นเมื่อมีการ Req และถูกเมื่อ Res
+    AddSingleton    -> ถูกสร้างขึ้นเมื่อแอบเริ่มทำงานและถูกทำงายเมื่อแอพหยุดการทำงาน โดยปกติจะใช้ใน Catch Services
+*/
+builder.Services.AddTransient<ITokenService, TokenService>();
+
 builder.Services.AddDbContext<DataContext>(opt =>
 {
     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
