@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using server.Data;
 using server.DTOs;
 using server.Entities;
+using server.Interfaces;
 
 namespace server.Controllers
 {
@@ -17,13 +18,15 @@ namespace server.Controllers
     public class AccountController : ControllerBase
     {
         private readonly DataContext _context;
-        public AccountController(DataContext context)
+        private readonly ITokenService _tokenService;
+        public AccountController(DataContext context, ITokenService tokenService)
         {
+            _tokenService = tokenService;
             _context = context;
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<AppUser>> Register([FromBody] RegisterDTO registerDTO)
+        public async Task<ActionResult<UserDto>> Register([FromBody] RegisterDTO registerDTO)
         {
             if (await UserExists(registerDTO.Username)) return BadRequest("Username is taken");
 
@@ -40,11 +43,15 @@ namespace server.Controllers
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
-            return Ok(user);
+            return Ok(new UserDto()
+            {
+                Username = user.UserName,
+                Token = _tokenService.CreateToken(user)
+            });
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<AppUser>> Login(LoginDTO loginDto)
+        public async Task<ActionResult<UserDto>> Login(LoginDTO loginDto)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == loginDto.Username);
 
@@ -57,7 +64,11 @@ namespace server.Controllers
                 if (computingHash[index] != user.PasswordHash[index]) return Unauthorized("Invalid password");
             }
 
-            return Ok(user);
+            return Ok(new UserDto()
+            {
+                Username = user.UserName,
+                Token = _tokenService.CreateToken(user)
+            });
         }
 
         private async Task<bool> UserExists(string username)
