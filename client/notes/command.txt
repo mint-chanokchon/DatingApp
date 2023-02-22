@@ -1,0 +1,6 @@
+
+    ng generate component <name>
+    สร้าง component
+
+    ng generate service <name>
+    สร้าง service
